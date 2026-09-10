@@ -1,0 +1,65 @@
+// =====================================================================
+//  PLAN B - Pipeline allege (sans Docker-in-Docker)
+//  A utiliser si Jenkins n'a pas acces au demon Docker.
+//  Controles : SCA (npm audit) + Secret Detection (Gitleaks binaire)
+//  Les rapports SAST/DAST generes hors pipeline sont archives depuis reports/
+// =====================================================================
+
+pipeline {
+    agent any
+    options { timestamps(); timeout(time: 30, unit: 'MINUTES') }
+    environment { REPORTS_DIR = 'reports' }
+
+    stages {
+        stage('1. Checkout') {
+            steps {
+                checkout scm
+                bat 'if not exist reports mkdir reports'
+            }
+        }
+
+        stage('2. Build / Preparation') {
+            steps {
+                bat 'npm install --legacy-peer-deps --ignore-scripts'
+            }
+        }
+
+        stage('3. Security Analysis - SCA') {
+            steps {
+                bat 'npm audit --json > reports\\sca-npm-audit.json 2>&1 & exit 0'
+                bat 'npm audit > reports\\sca-npm-audit.txt 2>&1 & exit 0'
+            }
+        }
+
+        stage('4. Additional Security Check - Secrets') {
+            steps {
+                // gitleaks.exe doit etre place dans C:\\tools\\ et ajoute au PATH
+                bat 'gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path reports\\secrets-gitleaks.json --redact --no-git --exit-code 0 --verbose > reports\\secrets-gitleaks.txt 2>&1 & exit 0'
+            }
+        }
+
+        stage('5. Report Generation') {
+            steps {
+                bat '''
+                    echo ================================================ > reports\\SUMMARY.txt
+                    echo  RAPPORT DE SECURITE - BUILD #%BUILD_NUMBER%    >> reports\\SUMMARY.txt
+                    echo ================================================ >> reports\\SUMMARY.txt
+                    type reports\\sca-npm-audit.txt | findstr /C:"vulnerabilities" >> reports\\SUMMARY.txt
+                    type reports\\SUMMARY.txt
+                '''
+                archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
+            }
+        }
+    }
+
+    post {
+        always {
+            emailext(
+                subject: "[${currentBuild.currentResult}] Pipeline securite Juice Shop - Build #${BUILD_NUMBER}",
+                body: "Resultat : ${currentBuild.currentResult}\nConsole : ${BUILD_URL}console",
+                to: 'ousmanhabsaba@gmail.com',
+                attachmentsPattern: 'reports/*.txt'
+            )
+        }
+    }
+}

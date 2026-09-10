@@ -1,261 +1,211 @@
-# ![Juice Shop Logo](https://raw.githubusercontent.com/juice-shop/juice-shop/master/frontend/src/assets/public/images/JuiceShop_Logo_100px.png) OWASP Juice Shop
-
-[![OWASP Flagship](https://img.shields.io/badge/owasp-flagship%20project-48A646.svg)](https://owasp.org/projects/#sec-flagships)
-[![GitHub release](https://img.shields.io/github/release/juice-shop/juice-shop.svg)](https://github.com/juice-shop/juice-shop/releases/latest)
-[![Twitter Follow](https://img.shields.io/twitter/follow/owasp_juiceshop.svg?style=social&label=Follow)](https://twitter.com/owasp_juiceshop)
-[![Subreddit subscribers](https://img.shields.io/reddit/subreddit-subscribers/owasp_juiceshop?style=social)](https://reddit.com/r/owasp_juiceshop)
-
-[![CI/CD Pipeline](https://github.com/juice-shop/juice-shop/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/juice-shop/juice-shop/actions/workflows/ci.yml)
-[![Release Pipeline](https://github.com/juice-shop/juice-shop/actions/workflows/release.yml/badge.svg)](https://github.com/juice-shop/juice-shop/actions/workflows/release.yml)
-[![Coverage Status](https://coveralls.io/repos/github/juice-shop/juice-shop/badge.svg?branch=develop)](https://coveralls.io/github/juice-shop/juice-shop?branch=develop)
-[![Cypress tests](https://img.shields.io/endpoint?url=https://dashboard.cypress.io/badge/simple/3hrkhu/develop&style=flat&logo=cypress)](https://dashboard.cypress.io/projects/3hrkhu/runs)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/223/badge)](https://www.bestpractices.dev/projects/223)
-![GitHub stars](https://img.shields.io/github/stars/juice-shop/juice-shop.svg?label=GitHub%20%E2%98%85&style=flat)
-[![Static Badge](https://img.shields.io/badge/OWASP-Code_of_Conduct-blue)](CODE_OF_CONDUCT.md)
-
-> [The most trustworthy online shop out there.](https://twitter.com/dschadow/status/706781693504589824)
-> ([@dschadow](https://github.com/dschadow)) —
-> [The best juice shop on the whole internet!](https://twitter.com/shehackspurple/status/907335357775085568)
-> ([@shehackspurple](https://twitter.com/shehackspurple)) —
-> [Actually the most bug-free vulnerable application in existence!](https://youtu.be/TXAztSpYpvE?t=26m35s)
-> ([@vanderaj](https://twitter.com/vanderaj)) —
-> [First you 😂😂then you 😢](https://twitter.com/kramse/status/1073168529405472768)
-> ([@kramse](https://twitter.com/kramse)) —
-> [But this doesn't have anything to do with juice.](https://twitter.com/coderPatros/status/1199268774626488320)
-> ([@coderPatros' wife](https://twitter.com/coderPatros))
-
-OWASP Juice Shop is probably the most modern and sophisticated insecure web application! It can be used in security
-trainings, awareness demos, CTFs and as a guinea pig for security tools! Juice Shop encompasses vulnerabilities from the
-entire
-[OWASP Top Ten](https://owasp.org/www-project-top-ten) along with many other security flaws found in real-world
-applications!
-
-![Juice Shop Screenshot Slideshow](screenshots/slideshow.gif)
-
-For a detailed introduction, full list of features and architecture overview please visit the official project page:
-<https://owasp-juice.shop>
-
-## Table of contents
-
-- [Setup](#setup)
-    - [From Sources](#from-sources)
-    - [Packaged Distributions](#packaged-distributions)
-    - [Docker Container](#docker-container)
-    - [Vagrant](#vagrant)
-- [Demo](#demo)
-- [Documentation](#documentation)
-    - [Node.js version compatibility](#nodejs-version-compatibility)
-    - [Troubleshooting](#troubleshooting)
-    - [Official companion guide](#official-companion-guide)
-- [Contributing](#contributing)
-- [References](#references)
-- [Merchandise](#merchandise)
-- [Donations](#donations)
-- [Contributors](#contributors)
-- [Licensing](#licensing)
-
-## Setup
-
-> You can find some less common installation variations as well as instructions to run Juice Shop on a variety of cloud computing providers in
-> [the _Running OWASP Juice Shop_ documentation](https://pwning.owasp-juice.shop/companion-guide/latest/part1/running.html).
-
-> Some challenges require an AI/LLM provider to work properly. Check the
-> [_Setting up external dependencies_ documentation](https://pwning.owasp-juice.shop/companion-guide/snapshot/part1/running.html#_setting_up_external_dependencies)
-> for instructions on configuring local or cloud-based AI providers.
-
-### From Sources
-
-![GitHub repo size](https://img.shields.io/github/repo-size/juice-shop/juice-shop.svg)
-
-1. Install [node.js](#nodejs-version-compatibility)
-2. Run `git clone https://github.com/juice-shop/juice-shop.git --depth 1` (or
-   clone [your own fork](https://github.com/juice-shop/juice-shop/fork)
-   of the repository)
-3. Go into the cloned folder with `cd juice-shop`
-4. Run `npm install` (only has to be done before first start or when you change the source code)
-5. Run `npm start`
-6. Browse to <http://localhost:3000>
-
-### Packaged Distributions
-
-[![GitHub release](https://img.shields.io/github/downloads/juice-shop/juice-shop/total.svg)](https://github.com/juice-shop/juice-shop/releases/latest)
-[![SourceForge](https://img.shields.io/sourceforge/dm/juice-shop?label=sourceforge%20downloads)](https://sourceforge.net/projects/juice-shop/)
-[![SourceForge](https://img.shields.io/sourceforge/dt/juice-shop?label=sourceforge%20downloads)](https://sourceforge.net/projects/juice-shop/)
-
-1. Install a 64bit [node.js](#nodejs-version-compatibility) on your Windows, MacOS or Linux machine
-2. Download `juice-shop-<version>_<node-version>_<os>_x64.zip` (or
-   `.tgz`) attached to
-   [latest release](https://github.com/juice-shop/juice-shop/releases/latest)
-3. Unpack and `cd` into the unpacked folder
-4. Run `npm start`
-5. Browse to <http://localhost:3000>
-
-> Each packaged distribution includes some binaries for `sqlite3` and
-> `libxmljs2` bound to the OS and node.js version which `npm install` was
-> executed on.
-
-### Docker Container
-
-[![Docker Pulls](https://img.shields.io/docker/pulls/bkimminich/juice-shop.svg)](https://hub.docker.com/r/bkimminich/juice-shop)
-![Docker Stars](https://img.shields.io/docker/stars/bkimminich/juice-shop.svg)
-[![](https://images.microbadger.com/badges/image/bkimminich/juice-shop.svg)](https://microbadger.com/images/bkimminich/juice-shop
-"Get your own image badge on microbadger.com")
-[![](https://images.microbadger.com/badges/version/bkimminich/juice-shop.svg)](https://microbadger.com/images/bkimminich/juice-shop
-"Get your own version badge on microbadger.com")
-
-1. Install [Docker](https://www.docker.com)
-2. Run `docker pull bkimminich/juice-shop`
-3. Run `docker run --rm -p 127.0.0.1:3000:3000 bkimminich/juice-shop`
-4. Browse to <http://localhost:3000> (on macOS and Windows browse to
-   <http://192.168.99.100:3000> if you are using docker-machine instead of the native docker installation)
-
-### Vagrant
-
-1. Install [Vagrant](https://www.vagrantup.com/downloads.html) and
-   [Virtualbox](https://www.virtualbox.org/wiki/Downloads)
-2. Run `git clone https://github.com/juice-shop/juice-shop.git` (or
-   clone [your own fork](https://github.com/juice-shop/juice-shop/fork)
-   of the repository)
-3. Run `cd vagrant && vagrant up`
-4. Browse to [192.168.56.110](http://192.168.56.110)
-
-## Demo
-
-Feel free to have a look at the latest version of OWASP Juice Shop:
-<http://demo.owasp-juice.shop>
-
-> This is a deployment-test and sneak-peek instance only! You are __not
-> supposed__ to use this instance for your own hacking endeavours! No
-> guaranteed uptime! Guaranteed stern looks if you break it!
-
-## Documentation
-
-### Node.js version compatibility
-
-![GitHub package.json dynamic](https://img.shields.io/github/package-json/cpu/juice-shop/juice-shop)
-![GitHub package.json dynamic](https://img.shields.io/github/package-json/os/juice-shop/juice-shop)
-
-OWASP Juice Shop officially supports the following versions of
-[node.js](http://nodejs.org) in line with the official
-[node.js LTS schedule](https://github.com/nodejs/LTS) as close as possible. Docker images and packaged distributions are
-offered accordingly.
-
-| node.js | Supported              | Tested             | [Packaged Distributions](#packaged-distributions) | [Docker images](#docker-container) from `master` | [Docker images](#docker-container) from `develop` |
-|:--------|:-----------------------|:-------------------|:--------------------------------------------------|:-------------------------------------------------|:--------------------------------------------------|
-| 26.x    | :heavy_check_mark:     | :heavy_check_mark: |                                                   |                                                  |                                                   |
-| 25.x    | ( :heavy_check_mark: ) | :x:                |                                                   |                                                  |                                                   |
-| 24.x    | :heavy_check_mark:     | :heavy_check_mark: | Windows (`x64`), MacOS (`x64`), Linux (`x64`)     | `latest` (`linux/amd64`, `linux/arm64`)          | `snapshot` (`linux/amd64`, `linux/arm64`)         |
-| 23.x    | :x:                    | :x:                |                                                   |                                                  |                                                   |
-| 22.x    | :heavy_check_mark:     | :heavy_check_mark: |                                                   |                                                  |                                                   |
-| <22.x   | :x:                    | :x:                |                                                   |                                                  |                                                   |
-
-Juice Shop is automatically tested _only on the latest `.x` minor version_ of each node.js version mentioned above!
-There is no guarantee that older minor node.js releases will always work with Juice Shop!
-Please make sure you stay up to date with your chosen version.
-
-### Troubleshooting
-
-[![Gitter](http://img.shields.io/badge/gitter-join%20chat-1dce73.svg)](https://gitter.im/bkimminich/juice-shop)
-
-If you need help with the application setup please check 
-[our existing _Troubleshooting_](https://pwning.owasp-juice.shop/companion-guide/latest/part4/troubleshooting.html)
-guide. If this does not solve your issue please post your specific problem or question in the
-[Gitter Chat](https://gitter.im/bkimminich/juice-shop) where community members can best try to help you.
-
-:stop_sign: **Please avoid opening GitHub issues for support requests or questions!**
-
-### Official companion guide
-
-[![Write Goodreads Review](https://img.shields.io/badge/goodreads-write%20review-49557240.svg)](https://www.goodreads.com/review/edit/49557240)
-
-OWASP Juice Shop comes with an official companion guide eBook. It will give you a complete overview of all
-vulnerabilities found in the application including hints how to spot and exploit them. In the appendix you will even
-find complete step-by-step solutions to every challenge. Extensive documentation of
-[custom re-branding](https://pwning.owasp-juice.shop/companion-guide/latest/part4/customization.html),
-[CTF-support](https://pwning.owasp-juice.shop/companion-guide/latest/part4/ctf.html),
-[trainer's guide](https://pwning.owasp-juice.shop/companion-guide/latest/part4/trainers.html)
-and much more is also included.
-
-[Pwning OWASP Juice Shop](https://leanpub.com/juice-shop) is published under
-[CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/)
-and is available **for free** in PDF, Kindle and ePub format on LeanPub. You can also
-[browse the full content online](https://pwning.owasp-juice.shop)!
-
-[<img alt="Pwning OWASP Juice Shop cover" src="https://raw.githubusercontent.com/juice-shop/pwning-juice-shop/master/docs/modules/ROOT/assets/images/cover.jpg" width="200"/>](https://leanpub.com/juice-shop)
-[<img alt="Pwning OWASP Juice Shop back cover" src="https://raw.githubusercontent.com/juice-shop/pwning-juice-shop/master/docs/modules/ROOT/assets/images/introduction/back.jpg" width="200"/>](https://leanpub.com/juice-shop)
-
-## Contributing
-
-[![GitHub contributors](https://img.shields.io/github/contributors/juice-shop/juice-shop.svg)](https://github.com/juice-shop/juice-shop/graphs/contributors)
-[![JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
-[![Crowdin](https://d322cqt584bo4o.cloudfront.net/owasp-juice-shop/localized.svg)](https://crowdin.com/project/owasp-juice-shop)
-![GitHub issues by-label](https://img.shields.io/github/issues/juice-shop/juice-shop/help%20wanted.svg)
-![GitHub issues by-label](https://img.shields.io/github/issues/juice-shop/juice-shop/good%20first%20issue.svg)
-
-We are always happy to get new contributors on board! Please check
-[CONTRIBUTING.md](CONTRIBUTING.md) to learn how to
-[contribute to our codebase](CONTRIBUTING.md#code-contributions) or the
-[translation into different languages](CONTRIBUTING.md#i18n-contributions)!
-
-## References
-
-Did you write a blog post, magazine article or do a podcast about or mentioning OWASP Juice Shop? Or maybe you held or
-joined a conference talk or meetup session, a hacking workshop or public training where this project was mentioned?
-
-Add it to our ever-growing list of [REFERENCES.md](REFERENCES.md) by forking and opening a Pull Request!
-
-## Merchandise
-
-* On [Spreadshirt.com](http://shop.spreadshirt.com/juiceshop) and
-  [Spreadshirt.de](http://shop.spreadshirt.de/juiceshop) you can get some swag (Shirts, Hoodies, Mugs) with the official
-  OWASP Juice Shop logo
-* On
-  [StickerYou.com](https://www.stickeryou.com/products/owasp-juice-shop/794)
-  you can get variants of the OWASP Juice Shop logo as single stickers to decorate your laptop with. They can also print
-  magnets, iron-ons, sticker sheets and temporary tattoos.
-
-## Donations
-
-[![](https://img.shields.io/badge/support-owasp%20juice%20shop-blue)](https://owasp.org/donate/?reponame=www-project-juice-shop&title=OWASP+Juice+Shop)
-
-The OWASP Foundation gratefully accepts donations via Stripe. Projects such as Juice Shop can then request reimbursement
-for expenses from the Foundation. If you'd like to express your support of the Juice Shop project, please make sure to
-tick the "Publicly list me as a supporter of OWASP Juice Shop" checkbox on the donation form. You can find our more
-about donations and how they are used here:
-
-<https://pwning.owasp-juice.shop/companion-guide/latest/part3/donations.html>
-
-## Contributors
-
-The OWASP Juice Shop Project Leaders are:
-
-- [Björn Kimminich](https://github.com/bkimminich) aka `bkimminich` [![Keybase PGP](https://img.shields.io/keybase/pgp/bkimminich)](https://keybase.io/bkimminich)
-- [Jannik Hollenbach](https://github.com/J12934) aka `J12934`
-
-For a list of all contributors to the OWASP Juice Shop please visit our
-[HALL_OF_FAME.md](HALL_OF_FAME.md).
-
-## Licensing
-
-[![license](https://img.shields.io/github/license/juice-shop/juice-shop.svg)](LICENSE)
-
-This program is free software: you can redistribute it and/or modify it under the terms of the [MIT license](LICENSE).
-OWASP Juice Shop and any contributions are Copyright © by Bjoern Kimminich & the OWASP Juice Shop contributors
-2014-2026.
-
-![Juice Shop Logo](https://raw.githubusercontent.com/juice-shop/juice-shop/master/frontend/src/assets/public/images/JuiceShop_Logo_400px.png)
-
-Test CI/CD Jenkins - TP Securite des Donnees
-
-Test webhook automatique
-
-Test webhook 2
-
-Test webhook 3
-
-Test webhook 3
-
-Test final pipeline en cours
-
-merci madame
-c'est bon c'est okay
+# Examen Final — Sécurité des Données · Évaluation de sécurité d'OWASP Juice Shop
+
+**Licence 3 — Cybersécurité** · Auteur : **Ousmane BA** · Rôle : *Cybersecurity Analyst / Junior DevSecOps Engineer*
+
+Évaluation de sécurité de l'application vulnérable **OWASP Juice Shop** avant mise en
+production : identification et classification CWE des vulnérabilités, analyse d'impact
+CIA, remédiations vérifiées, et intégration de contrôles de sécurité automatisés dans un
+pipeline Jenkins.
+
+---
+
+## 1. Application analysée
+
+| | |
+|---|---|
+| **Application** | OWASP Juice Shop (projet OWASP officiel — *Flagship*) |
+| **Version** | image Docker `bkimminich/juice-shop:latest` |
+| **Pile technique** | Node.js / Express / Angular / Sequelize / SQLite |
+| **URL locale** | http://localhost:3000 |
+| **Dépôt forké** | https://github.com/leonbathie/juice-shop |
+
+> ⚠️ **Cadre d'usage** — Juice Shop est une application volontairement vulnérable, conçue
+> pour l'entraînement. Toutes les manipulations décrites ici ont été réalisées sur une
+> instance locale personnelle, sans aucune cible tierce.
+
+---
+
+## 2. Arborescence du dépôt
+
+```
+project/
+├── README.md                    # ce fichier
+├── Jenkinsfile                  # pipeline complet (SCA + Secrets + SAST + DAST)
+├── Jenkinsfile.simple           # variante allégée (sans accès au démon Docker)
+├── .gitleaks.toml               # configuration de la détection de secrets
+├── reports/                     # sorties des outils (JSON / TXT / HTML)
+├── screenshots/                 # captures d'écran (voir LISTE_CAPTURES.md)
+├── security-config/
+│   ├── semgrep-rules.yml        # règles SAST personnalisées (mappées CWE)
+│   └── zap-baseline.conf        # politique DAST (FAIL / WARN / IGNORE)
+├── scripts/
+│   └── run-all-scans.ps1        # exécution locale des 4 contrôles
+└── remediation/
+    ├── V1-sql-injection.md
+    ├── V2-xss.md
+    ├── V3-broken-access-control.md
+    ├── V4-exposition-donnees-ftp.md
+    └── V5-secrets-et-hachage.md
+```
+
+---
+
+## 3. Comment exécuter le projet
+
+### 3.1 Prérequis
+
+- Windows 11 + **Docker Desktop** (démon démarré)
+- **Node.js 20 LTS** et npm
+- **Git**
+- **Jenkins** (conteneur Docker, cf. §3.4)
+
+### 3.2 Lancer l'application cible
+
+```powershell
+docker pull bkimminich/juice-shop
+docker run -d --name juice-shop -p 3000:3000 bkimminich/juice-shop
+# Vérification
+curl.exe -s -o NUL -w "%{http_code}`n" http://localhost:3000
+```
+
+L'application est accessible sur **http://localhost:3000**.
+
+### 3.3 Lancer les analyses de sécurité
+
+**En une seule commande :**
+
+```powershell
+git clone https://github.com/leonbathie/juice-shop.git
+cd juice-shop
+powershell -ExecutionPolicy Bypass -File .\scripts\run-all-scans.ps1
+```
+
+**Ou outil par outil :**
+
+```powershell
+# SCA — analyse des dépendances
+npm install --legacy-peer-deps --ignore-scripts
+npm audit --json > reports\sca-npm-audit.json
+npm audit        > reports\sca-npm-audit.txt
+
+# Secret Detection — Gitleaks
+docker run --rm -v "${PWD}:/repo" -w /repo zricethezav/gitleaks:latest detect `
+  --source . --config .gitleaks.toml --report-format json `
+  --report-path reports/secrets-gitleaks.json --redact --no-git --exit-code 0 --verbose
+
+# SAST — Semgrep
+docker run --rm -v "${PWD}:/src" -w /src semgrep/semgrep:latest semgrep scan `
+  --config security-config/semgrep-rules.yml --config p/owasp-top-ten `
+  --json --output reports/sast-semgrep.json --metrics=off routes lib models
+
+# DAST — OWASP ZAP Baseline
+docker run --rm -v "${PWD}\reports:/zap/wrk:rw" -t ghcr.io/zaproxy/zaproxy:stable `
+  zap-baseline.py -t http://host.docker.internal:3000 `
+  -J dast-zap.json -r dast-zap.html -I -m 3
+```
+
+### 3.4 Lancer le pipeline Jenkins
+
+```powershell
+# 1. Démarrer Jenkins avec accès au démon Docker
+docker run -d --name jenkins-secu -u root `
+  -p 8080:8080 -p 50000:50000 `
+  -v jenkins_home:/var/jenkins_home `
+  -v /var/run/docker.sock:/var/run/docker.sock `
+  jenkins/jenkins:lts
+
+# 2. Installer le client Docker dans le conteneur Jenkins
+docker exec -u root jenkins-secu bash -c "curl -fsSL https://get.docker.com | sh"
+
+# 3. Récupérer le mot de passe initial
+docker exec jenkins-secu cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+Puis, sur **http://localhost:8080** :
+
+1. déverrouiller Jenkins, installer les plugins suggérés, créer l'utilisateur admin ;
+2. installer les plugins **Pipeline**, **Git**, **Email Extension**, **HTML Publisher**, **NodeJS** ;
+3. *Nouvel Item* → **Pipeline** → nom `Securite-JuiceShop` ;
+4. *Pipeline* → **Pipeline script from SCM** → Git → `https://github.com/leonbathie/juice-shop.git`, branche `master`, *Script Path* = `Jenkinsfile` ;
+5. cocher **GitHub hook trigger for GITScm polling** ;
+6. **Build Now**.
+
+### 3.5 Notification par e-mail
+
+*Administrer Jenkins → Configuration du système → Extended E-mail Notification* :
+
+| Paramètre | Valeur |
+|---|---|
+| SMTP server | `smtp.gmail.com` |
+| Port | `465` — SSL activé |
+| Credentials | compte Gmail + **mot de passe d'application** |
+| Default Content Type | HTML |
+
+### 3.6 Déclenchement automatique (webhook)
+
+```powershell
+ngrok http 8080
+```
+
+Puis sur GitHub : *Settings → Webhooks → Add webhook* →
+`https://<id>.ngrok-free.app/github-webhook/` · content type `application/json` · événement *Just the push event*.
+
+---
+
+## 4. Contrôles de sécurité intégrés
+
+| Étape du pipeline | Type | Outil | Ce qu'il détecte | Limites |
+|---|---|---|---|---|
+| 1. Checkout | — | Git | — | — |
+| 2. Build / Preparation | — | npm | — | — |
+| 3. Security Analysis | **SCA** | `npm audit` | CVE des dépendances directes et transitives (CWE-1035, CWE-1104) | ne voit que l'arbre npm ; pas d'analyse d'exploitabilité réelle |
+| 3. Security Analysis | **Secret Detection** | Gitleaks | clés, jetons, mots de passe codés en dur (CWE-798, CWE-321) | secrets à faible entropie non détectés ; faux positifs sur les données de test |
+| 3. Security Analysis | **SAST** | Semgrep | SQLi, XSS, IDOR, path traversal, crypto faible (CWE-89, 79, 639, 22, 916) | pas de contexte d'exécution ; ne détecte pas les failles de logique métier |
+| 4. Additional Security Check | **DAST** | OWASP ZAP Baseline | mauvaises configurations, en-têtes manquants, injections détectables en boîte noire | ne couvre que les pages atteintes par le crawl ; aucune visibilité sur le code |
+| 5. Report Generation | — | script consolidé + *security gate* | applique les seuils `MAX_CRITICAL` / `MAX_SECRETS` | — |
+| 6. Notification | — | Email Extension | envoi du résumé et des rapports | — |
+
+**Positionnement dans le cycle :** SCA, Secret Detection et SAST interviennent **avant**
+le déploiement (analyse du code, *shift-left*, rapides) ; le DAST intervient **après**
+déploiement de l'instance de test, sur l'application en fonctionnement.
+
+---
+
+## 5. Vulnérabilités identifiées
+
+| ID | Vulnérabilité | Composant | CWE | Sévérité |
+|---|---|---|---|---|
+| V1 | Injection SQL (authentification) | `routes/login.ts` | CWE-89 | **Critical** |
+| V2 | Cross-Site Scripting (DOM) | recherche produit | CWE-79 | **High** |
+| V3 | Broken Access Control / IDOR | `routes/basket.ts` | CWE-639 | **High** |
+| V4 | Exposition de données + path traversal | `/ftp` | CWE-200 / CWE-22 | **High** |
+| V5 | Secrets codés en dur + hachage MD5 | `lib/insecurity.ts` | CWE-798 / CWE-916 | **Critical** |
+| V6 | Dépendances vulnérables (46 CVE) | `package.json` | CWE-1035 | **Critical** |
+| V7 | Mauvaise configuration de sécurité | en-têtes HTTP | CWE-16 / CWE-693 | **Medium** |
+| V8 | Absence de limitation des tentatives | `/rest/user/login` | CWE-307 | **Medium** |
+
+Le détail complet (impact CIA, remédiation, vérification) figure dans le **rapport de
+sécurité** et dans le dossier `remediation/`.
+
+---
+
+## 6. Décision de déploiement
+
+> ### 🔴 REJECT DEPLOYMENT
+>
+> Deux vulnérabilités de sévérité **Critical** (V1 — injection SQL permettant une prise de
+> contrôle administrateur sans authentification ; V5 — clé de signature JWT exposée
+> permettant la forge de jetons) compromettent directement la confidentialité **et**
+> l'intégrité des données utilisateurs. Le *security gate* du pipeline
+> (`MAX_CRITICAL = 0`) échoue et bloque le déploiement. La mise en production ne pourra
+> être reconsidérée qu'après correction de V1 à V5 et re-exécution complète du pipeline
+> avec un build en succès.
+
+---
+
+## 7. Références
+
+- OWASP Top 10 (2021) — https://owasp.org/Top10/
+- MITRE CWE Top 25 — https://cwe.mitre.org/top25/
+- OWASP Juice Shop — https://owasp.org/www-project-juice-shop/
+- OWASP Cheat Sheet Series (SQL Injection, XSS, Access Control, Secrets Management)

@@ -1,0 +1,124 @@
+# =====================================================================
+# Regles SAST personnalisees (Semgrep)
+# Projet : OWASP Juice Shop / Examen Final Securite des Donnees
+# Chaque regle est reliee a une CWE et a une vulnerabilite du rapport
+# =====================================================================
+
+rules:
+
+  # ---------------- V1 : Injection SQL (CWE-89) ----------------
+  - id: sqli-string-concatenation
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Injection SQL potentielle (CWE-89) : la requete est construite par
+      concatenation de chaines avec une entree utilisateur. Utiliser des
+      requetes parametrees (replacements Sequelize / prepared statements).
+    metadata:
+      cwe: "CWE-89: Improper Neutralization of Special Elements used in an SQL Command"
+      owasp: "A03:2021 - Injection"
+      confidence: HIGH
+    patterns:
+      - pattern-either:
+          - pattern: $DB.query("..." + $VAR)
+          - pattern: $DB.query(`...${$VAR}...`)
+          - pattern: $MODEL.sequelize.query("..." + $VAR)
+          - pattern: $MODEL.sequelize.query(`...${$VAR}...`)
+
+  # ---------------- V2 : XSS (CWE-79) ----------------
+  - id: xss-unsanitized-output
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      XSS potentielle (CWE-79) : donnee non echappee injectee dans le DOM.
+      Utiliser textContent, ou assainir avec DOMPurify.
+    metadata:
+      cwe: "CWE-79: Improper Neutralization of Input During Web Page Generation"
+      owasp: "A03:2021 - Injection"
+    patterns:
+      - pattern-either:
+          - pattern: $EL.innerHTML = $VAR
+          - pattern: $EL.outerHTML = $VAR
+          - pattern: document.write($VAR)
+          - pattern: $SANITIZER.bypassSecurityTrustHtml($VAR)
+
+  # ---------------- V3 : Broken Access Control (CWE-639) ----------------
+  - id: idor-missing-ownership-check
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >-
+      Reference directe non securisee (CWE-639) : un identifiant fourni par
+      l'utilisateur est utilise dans une requete sans verification de
+      propriete de la ressource.
+    metadata:
+      cwe: "CWE-639: Authorization Bypass Through User-Controlled Key"
+      owasp: "A01:2021 - Broken Access Control"
+    patterns:
+      - pattern: $MODEL.findOne({ where: { id: $REQ.params.$P } })
+      - pattern-not-inside: |
+          if (<... $REQ.user ...>) { ... }
+
+  # ---------------- V4 : Path Traversal (CWE-22) ----------------
+  - id: path-traversal-user-input
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Traversee de repertoire (CWE-22) : un chemin de fichier est construit a
+      partir d'une entree utilisateur. Valider avec une liste blanche et
+      normaliser via path.resolve + verification du prefixe.
+    metadata:
+      cwe: "CWE-22: Improper Limitation of a Pathname to a Restricted Directory"
+      owasp: "A01:2021 - Broken Access Control"
+    patterns:
+      - pattern-either:
+          - pattern: res.sendFile(path.resolve(..., $REQ.params.$P))
+          - pattern: fs.readFile($DIR + $REQ.params.$P, ...)
+          - pattern: fs.readFileSync($DIR + $REQ.query.$P, ...)
+
+  # ---------------- V5 : Secret code en dur (CWE-798) ----------------
+  - id: hardcoded-jwt-secret
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Secret code en dur (CWE-798) : la cle de signature JWT est presente dans
+      le code source. La deplacer dans une variable d'environnement / un
+      gestionnaire de secrets.
+    metadata:
+      cwe: "CWE-798: Use of Hard-coded Credentials"
+      owasp: "A07:2021 - Identification and Authentication Failures"
+    patterns:
+      - pattern-either:
+          - pattern: jwt.sign($PAYLOAD, "...", ...)
+          - pattern: |
+              $SECRET = "..."
+              ...
+              jwt.sign($PAYLOAD, $SECRET, ...)
+
+  # ---------------- V6 : Hachage faible (CWE-916) ----------------
+  - id: weak-password-hashing
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      Hachage faible (CWE-916) : MD5/SHA1 sans sel ni cout de calcul.
+      Utiliser bcrypt, scrypt ou Argon2.
+    metadata:
+      cwe: "CWE-916: Use of Password Hash With Insufficient Computational Effort"
+      owasp: "A02:2021 - Cryptographic Failures"
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createHash("md5")
+          - pattern: crypto.createHash("sha1")
+
+  # ---------------- V8 : Absence de limitation de debit (CWE-307) ----------------
+  - id: login-without-rate-limit
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >-
+      Authentification sans limitation de tentatives (CWE-307) : ajouter un
+      middleware express-rate-limit sur la route de connexion.
+    metadata:
+      cwe: "CWE-307: Improper Restriction of Excessive Authentication Attempts"
+      owasp: "A07:2021 - Identification and Authentication Failures"
+    patterns:
+      - pattern: $APP.post("/rest/user/login", ...)
+      - pattern-not: $APP.post("/rest/user/login", $LIMITER, ...)

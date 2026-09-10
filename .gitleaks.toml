@@ -1,0 +1,61 @@
+# =====================================================================
+# Configuration Gitleaks - Detection de secrets
+# Projet : OWASP Juice Shop / Examen Final Securite des Donnees
+# Objectif : detecter les secrets codes en dur (CWE-798)
+# =====================================================================
+
+title = "Juice Shop - Secret Detection"
+
+# On part du jeu de regles par defaut de Gitleaks (100+ detecteurs :
+# AWS, GitHub, Slack, Stripe, cles privees, JWT, etc.)
+[extend]
+useDefault = true
+
+# ---------------------------------------------------------------------
+# Regles personnalisees adaptees au projet
+# ---------------------------------------------------------------------
+
+[[rules]]
+id = "jwt-signing-secret"
+description = "Secret de signature JWT code en dur (CWE-798 / CWE-321)"
+regex = '''(?i)(jwt[_-]?secret|publicKey|privateKey|signingKey)\s*[:=]\s*["'][^"']{6,}["']'''
+tags = ["jwt", "hardcoded", "CWE-798"]
+
+[[rules]]
+id = "weak-hash-md5"
+description = "Utilisation de MD5 pour le hachage de mots de passe (CWE-916)"
+regex = '''(?i)createHash\(\s*["']md5["']\s*\)'''
+tags = ["crypto", "weak-hash", "CWE-916"]
+
+[[rules]]
+id = "db-connection-string"
+description = "Chaine de connexion base de donnees en clair"
+regex = '''(?i)(mongodb|mysql|postgres(ql)?|redis):\/\/[^\s"']*:[^\s"']*@'''
+tags = ["database", "credentials", "CWE-798"]
+
+[[rules]]
+id = "generic-hardcoded-password"
+description = "Mot de passe code en dur"
+regex = '''(?i)(password|passwd|pwd|secret|token|api[_-]?key)\s*[:=]\s*["'][^"'\s]{8,}["']'''
+entropy = 2.5
+tags = ["password", "CWE-798"]
+
+# ---------------------------------------------------------------------
+# Exclusions (reduction des faux positifs)
+# ---------------------------------------------------------------------
+[allowlist]
+description = "Chemins et motifs exclus de l'analyse"
+paths = [
+    '''node_modules''',
+    '''\.git/''',
+    '''package-lock\.json''',
+    '''dist/''',
+    '''build/''',
+    '''\.min\.js$''',
+    '''\.map$''',
+    '''test/.*\.spec\.(js|ts)$'''
+]
+regexes = [
+    '''(?i)password\s*[:=]\s*["'](changeme|example|placeholder|xxx+|your[_-]?password)["']''',
+    '''(?i)example\.(com|org)'''
+]
