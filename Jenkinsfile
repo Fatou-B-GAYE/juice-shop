@@ -2,8 +2,14 @@
 //  Examen Final - Securite des Donnees (L3 Cybersecurite)
 //  Pipeline de securite automatise pour OWASP Juice Shop
 //  Auteur : Ousmane BA
-//  Controles integres : SCA (npm audit) - Secret Detection (Gitleaks)
-//                       SAST (Semgrep)  - DAST (OWASP ZAP Baseline)
+//
+//  Version ajustee a l'environnement Docker Desktop :
+//   - les scans tournent dans des conteneurs (--volumes-from) : pas
+//     besoin d'installer Node/outils dans Jenkins
+//   - aucune dependance a un plugin fragile (pas de publishHTML)
+//   - notification email tolerante (n'echoue jamais le build)
+//  Controles : SCA (npm audit) - Secret Detection (Gitleaks)
+//              SAST (Semgrep)  - DAST (OWASP ZAP, non bloquant)
 // =====================================================================
 
 pipeline {
@@ -11,17 +17,15 @@ pipeline {
 
     options {
         timestamps()
+        timeout(time: 40, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 45, unit: 'MINUTES')
     }
 
     environment {
-        APP_NAME       = 'juice-shop'
-        APP_URL        = 'http://juice-shop:3000'
-        REPORTS_DIR    = 'reports'
-        // Seuils de securite (gates)
-        MAX_CRITICAL   = '0'
-        MAX_SECRETS    = '0'
+        APP_NAME     = 'juice-shop'
+        REPORTS_DIR  = 'reports'
+        MAX_CRITICAL = '0'          // seuil du security gate
+        NOTIFY_EMAIL = 'ousmanhabsaba@gmail.com'
     }
 
     stages {
@@ -29,169 +33,137 @@ pipeline {
         // ---------------- 1. CHECKOUT ----------------
         stage('1. Checkout') {
             steps {
-                echo '=== Recuperation du code source depuis GitHub ==='
+                echo '=== Recuperation du code source ==='
                 checkout scm
                 sh 'mkdir -p ${REPORTS_DIR}'
                 sh 'git log -1 --pretty=format:"Commit: %H%nAuteur: %an%nDate: %ad%nMessage: %s" | tee ${REPORTS_DIR}/00-commit-info.txt'
             }
         }
 
-        // ---------------- 2. BUILD / PREPARATION ----------------
-        stage('2. Build / Preparation') {
-            steps {
-                echo '=== Installation des dependances (sans postinstall) ==='
-                // --ignore-scripts : le postinstall Angular de Juice Shop echoue
-                //                    sur connexion lente et n'est pas necessaire au scan
-                // --legacy-peer-deps : conflits de peer dependencies du projet
-                sh '''
-                    npm install --legacy-peer-deps --ignore-scripts 2>&1 | tail -20
-                    node --version  > ${REPORTS_DIR}/01-build-env.txt
-                    npm --version  >> ${REPORTS_DIR}/01-build-env.txt
-                '''
-            }
-        }
-
-        // ---------------- 3. SECURITY ANALYSIS ----------------
-        stage('3. Security Analysis') {
+        // ---------------- 2. SECURITY ANALYSIS (parallele) ----------------
+        stage('2. Security Analysis') {
             parallel {
 
                 stage('SCA - npm audit') {
                     steps {
-                        echo '=== Analyse des dependances (Software Composition Analysis) ==='
+                        echo '=== SCA : analyse des dependances (npm audit) ==='
+                        // npm audit lit package-lock.json -> pas besoin de npm install
                         sh '''
-                            npm audit --json > ${REPORTS_DIR}/sca-npm-audit.json || true
-                            npm audit        > ${REPORTS_DIR}/sca-npm-audit.txt  || true
-                            echo "--- Resume SCA ---"
-                            tail -15 ${REPORTS_DIR}/sca-npm-audit.txt
+                            docker run --rm --volumes-from $(hostname) -w ${WORKSPACE} node:20 \
+                              sh -c "npm audit --json > ${REPORTS_DIR}/sca-npm-audit.json 2>/dev/null || true; \
+                                     npm audit        > ${REPORTS_DIR}/sca-npm-audit.txt  2>/dev/null || true"
+                            echo '--- Resume SCA ---'
+                            tail -20 ${REPORTS_DIR}/sca-npm-audit.txt || true
                         '''
                     }
                 }
 
-                stage('Secret Detection - Gitleaks') {
+                stage('Secrets - Gitleaks') {
                     steps {
-                        echo '=== Detection de secrets dans le code et l historique Git ==='
+                        echo '=== Secret Detection : Gitleaks ==='
                         sh '''
                             docker run --rm --volumes-from $(hostname) -w ${WORKSPACE} \
-                                zricethezav/gitleaks:latest detect \
-                                --source . \
-                                --config .gitleaks.toml \
-                                --report-format json \
-                                --report-path ${REPORTS_DIR}/secrets-gitleaks.json \
-                                --redact --no-git --exit-code 0 --verbose \
-                                | tee ${REPORTS_DIR}/secrets-gitleaks.txt || true
+                              zricethezav/gitleaks:latest detect \
+                              --source . --config .gitleaks.toml \
+                              --report-format json --report-path ${REPORTS_DIR}/secrets-gitleaks.json \
+                              --redact --no-git --exit-code 0 --verbose \
+                              2>&1 | tee ${REPORTS_DIR}/secrets-gitleaks.txt || true
                         '''
                     }
                 }
 
                 stage('SAST - Semgrep') {
                     steps {
-                        echo '=== Analyse statique du code source ==='
+                        echo '=== SAST : analyse statique (Semgrep) ==='
                         sh '''
                             docker run --rm --volumes-from $(hostname) -w ${WORKSPACE} \
-                                semgrep/semgrep:latest semgrep scan \
-                                --config security-config/semgrep-rules.yml \
-                                --config p/javascript \
-                                --config p/owasp-top-ten \
-                                --json --output ${REPORTS_DIR}/sast-semgrep.json \
-                                --no-git-ignore --metrics=off \
-                                routes/ lib/ models/ 2>&1 | tail -30 \
-                                | tee ${REPORTS_DIR}/sast-semgrep.txt || true
+                              semgrep/semgrep:latest semgrep scan \
+                              --config security-config/semgrep-rules.yml \
+                              --json --output ${REPORTS_DIR}/sast-semgrep.json \
+                              --metrics=off --no-git-ignore \
+                              routes lib models frontend 2>&1 | tail -40 \
+                              | tee ${REPORTS_DIR}/sast-semgrep.txt || true
                         '''
                     }
                 }
             }
         }
 
-        // ---------------- 4. ADDITIONAL SECURITY CHECK (DAST) ----------------
-        stage('4. Additional Security Check - DAST') {
+        // ---------------- 3. DAST (non bloquant) ----------------
+        stage('3. DAST - OWASP ZAP') {
             steps {
-                echo '=== Lancement de l application cible puis scan dynamique OWASP ZAP ==='
-                sh '''
-                    docker rm -f juice-shop-dast 2>/dev/null || true
-                    docker network create secnet 2>/dev/null || true
-                    docker run -d --rm --name juice-shop-dast --network secnet \
-                        -p 3000:3000 bkimminich/juice-shop
-                    echo "Attente du demarrage de l application (45s)..."
-                    sleep 45
-                '''
-                sh '''
-                    docker run --rm --network secnet --volumes-from $(hostname) -w ${WORKSPACE} \
-                        -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-                        -t http://juice-shop-dast:3000 \
-                        -J ${REPORTS_DIR}/dast-zap.json \
-                        -r ${REPORTS_DIR}/dast-zap.html \
-                        -I -m 3 2>&1 | tee ${REPORTS_DIR}/dast-zap.txt || true
-                '''
-            }
-            post {
-                always {
-                    sh 'docker rm -f juice-shop-dast 2>/dev/null || true'
+                echo '=== DAST : scan dynamique ZAP sur l application en cours d execution ==='
+                // juice-shop tourne deja sur l hote (port 3000) -> host.docker.internal
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        docker run --rm --volumes-from $(hostname) -w ${WORKSPACE} \
+                          ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+                          -t http://host.docker.internal:3000 \
+                          -J ${REPORTS_DIR}/dast-zap.json \
+                          -r ${REPORTS_DIR}/dast-zap.html \
+                          -I -m 2 2>&1 | tee ${REPORTS_DIR}/dast-zap.txt || true
+                    '''
                 }
             }
         }
 
-        // ---------------- 5. REPORT GENERATION ----------------
-        stage('5. Report Generation') {
+        // ---------------- 4. REPORT + SECURITY GATE ----------------
+        stage('4. Report + Security Gate') {
             steps {
-                echo '=== Consolidation des resultats et application des seuils ==='
+                echo '=== Consolidation et application du seuil de securite ==='
                 sh '''
-                    CRIT=$(grep -oE '"critical":[0-9]+' ${REPORTS_DIR}/sca-npm-audit.json | head -1 | cut -d: -f2)
-                    HIGH=$(grep -oE '"high":[0-9]+'     ${REPORTS_DIR}/sca-npm-audit.json | head -1 | cut -d: -f2)
-                    SECRETS=$(grep -oc '"RuleID"' ${REPORTS_DIR}/secrets-gitleaks.json || echo 0)
+                    CRIT=$(grep -oE "\\"critical\\":[0-9]+" ${REPORTS_DIR}/sca-npm-audit.json | head -1 | cut -d: -f2)
+                    HIGH=$(grep -oE "\\"high\\":[0-9]+"     ${REPORTS_DIR}/sca-npm-audit.json | head -1 | cut -d: -f2)
+                    SECRETS=$(grep -oc "\\"RuleID\\"" ${REPORTS_DIR}/secrets-gitleaks.json 2>/dev/null || echo 0)
 
                     {
                       echo "==================================================="
                       echo " RAPPORT DE SECURITE CONSOLIDE - BUILD #${BUILD_NUMBER}"
                       echo " Date : $(date)"
                       echo "==================================================="
-                      echo ""
                       echo "[SCA]     Dependances critiques : ${CRIT:-0}"
                       echo "[SCA]     Dependances elevees   : ${HIGH:-0}"
                       echo "[SECRETS] Secrets detectes      : ${SECRETS:-0}"
-                      echo "[SAST]    Voir sast-semgrep.txt"
-                      echo "[DAST]    Voir dast-zap.html"
-                      echo ""
-                      echo "Seuils appliques : CRITICAL<=${MAX_CRITICAL} , SECRETS<=${MAX_SECRETS}"
+                      echo "[SAST]    Voir reports/sast-semgrep.txt"
+                      echo "[DAST]    Voir reports/dast-zap.html"
+                      echo "Seuil applique : CRITICAL <= ${MAX_CRITICAL}"
                     } | tee ${REPORTS_DIR}/SUMMARY.txt
 
-                    # Security Gate : echec du build si seuils depasses
-                    if [ "${CRIT:-0}" -gt "${MAX_CRITICAL}" ]; then
-                        echo "SECURITY GATE : ECHEC - vulnerabilites critiques presentes"
-                        exit 1
-                    fi
+                    echo "${CRIT:-0}" > ${REPORTS_DIR}/.crit
                 '''
-            }
-            post {
-                always {
-                    archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true, fingerprint: true
-                    publishHTML(target: [
-                        reportDir: 'reports', reportFiles: 'dast-zap.html',
-                        reportName: 'Rapport DAST OWASP ZAP',
-                        keepAll: true, alwaysLinkToLastBuild: true, allowMissing: true
-                    ])
+                script {
+                    def crit = readFile("${REPORTS_DIR}/.crit").trim()
+                    if ((crit ?: '0').toInteger() > env.MAX_CRITICAL.toInteger()) {
+                        error "SECURITY GATE : ECHEC - ${crit} vulnerabilite(s) critique(s) > seuil (${env.MAX_CRITICAL}). Deploiement BLOQUE."
+                    }
                 }
             }
         }
     }
 
-    // ---------------- 6. NOTIFICATION ----------------
+    // ---------------- POST : archivage + notification ----------------
     post {
         always {
-            echo '=== Envoi de la notification ==='
-            emailext(
-                subject: "[${currentBuild.currentResult}] Pipeline securite ${APP_NAME} - Build #${BUILD_NUMBER}",
-                body: """<h3>Pipeline de securite - ${APP_NAME}</h3>
-                         <p><b>Resultat :</b> ${currentBuild.currentResult}</p>
-                         <p><b>Build :</b> #${BUILD_NUMBER}</p>
-                         <p><b>Duree :</b> ${currentBuild.durationString}</p>
-                         <p><b>Console :</b> <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
-                         <p>Rapports SCA / SAST / DAST / Secrets en piece jointe.</p>""",
-                mimeType: 'text/html',
-                to: 'ousmanhabsaba@gmail.com',
-                attachmentsPattern: 'reports/SUMMARY.txt,reports/sca-npm-audit.txt,reports/secrets-gitleaks.txt'
-            )
+            archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true, fingerprint: true
+            script {
+                try {
+                    emailext(
+                        subject: "[${currentBuild.currentResult}] Pipeline securite ${APP_NAME} - Build #${BUILD_NUMBER}",
+                        body: """<h3>Pipeline de securite - ${APP_NAME}</h3>
+                                 <p><b>Resultat :</b> ${currentBuild.currentResult}</p>
+                                 <p><b>Build :</b> #${BUILD_NUMBER} - duree ${currentBuild.durationString}</p>
+                                 <p><b>Console :</b> <a href="${BUILD_URL}console">${BUILD_URL}console</a></p>
+                                 <p>Rapports SCA / SAST / DAST / Secrets en piece jointe.</p>""",
+                        mimeType: 'text/html',
+                        to: env.NOTIFY_EMAIL,
+                        attachmentsPattern: 'reports/SUMMARY.txt,reports/sca-npm-audit.txt,reports/secrets-gitleaks.txt'
+                    )
+                } catch (e) {
+                    echo "Notification email non envoyee (SMTP non configure) : ${e.message}"
+                }
+            }
         }
-        failure  { echo 'SECURITY GATE FRANCHI : deploiement BLOQUE.' }
-        success  { echo 'Tous les controles de securite sont passes.' }
+        failure { echo 'SECURITY GATE FRANCHI : deploiement BLOQUE.' }
+        success { echo 'Tous les controles de securite sont passes.' }
     }
 }
