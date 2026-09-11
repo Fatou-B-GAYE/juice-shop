@@ -209,3 +209,5 @@ sécurité** et dans le dossier `remediation/`.
 - MITRE CWE Top 25 — https://cwe.mitre.org/top25/
 - OWASP Juice Shop — https://owasp.org/www-project-juice-shop/
 - OWASP Cheat Sheet Series (SQL Injection, XSS, Access Control, Secrets Management)
+
+<!-- test webhook 2026-09-11T13:39:17.4851491+00:00 -->
