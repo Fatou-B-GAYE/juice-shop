@@ -20,7 +20,7 @@ pipeline {
 
     environment {
         APP_NAME     = 'juice-shop'
-        NOTIFY_EMAIL = 'ousmanhabsaba@gmail.com'
+        NOTIFY_EMAIL = 'fatouboyegaye21@gmail.com'
     }
 
     stages {
