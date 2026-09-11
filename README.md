@@ -211,3 +211,5 @@ sécurité** et dans le dossier `remediation/`.
 - OWASP Cheat Sheet Series (SQL Injection, XSS, Access Control, Secrets Management)
 
 <!-- test webhook 2026-09-11T13:39:17.4851491+00:00 -->
+
+<!-- test webhook 2026-09-11T13:41:21.6973908+00:00 -->
